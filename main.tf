@@ -13,11 +13,23 @@ provider "aws" {
   secret_key = "YOUR_SECRET_KEY"
 }
 
+variable "subnet_prefix" {
+description = "CIDR block for the subnet"
+default = "10.0.1.0/24"
+type = string
+}
+
+variable "project_name" {
+  description = "Specifies the project name for tags"
+  type = string
+}
+
+
 #Creating a VPC
 resource "aws_vpc" "tf-project-1" {
   cidr_block = "10.0.0.0/16"
   tags = {
-    Name = "tf-project-1"
+    Name = var.project_name
   }
 }
 
@@ -25,7 +37,7 @@ resource "aws_vpc" "tf-project-1" {
 resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.tf-project-1.id
   tags = {
-    Name = "tf-project-1"
+    Name = var.project_name
   }
 }
 #Setting up a route table that routes all traffic through the internet gateway
@@ -43,17 +55,17 @@ resource "aws_route_table" "tf-project-1-rt" {
   }
 
   tags = {
-    Name = "tf-project-1"
+    Name = var.project_name
   }
 }
 
 #Creating a subnet inside the VPC
 resource "aws_subnet" "tf-project-1-default-subnet" {
   vpc_id            = aws_vpc.tf-project-1.id
-  cidr_block        = "10.0.1.0/24"
+  cidr_block        = var.subnet_prefix
   availability_zone = "ap-south-1a"
   tags = {
-    Name = "tf-project-1"
+    Name = var.project_name
   }
 }
 
@@ -103,7 +115,7 @@ resource "aws_security_group" "allow_web_traffic" {
   }
 
   tags = {
-    Name = "tf-project-1"
+    Name = var.project_name
   }
 }
 
@@ -142,7 +154,7 @@ resource "aws_instance" "tf-project-1-webserver" {
               sudo bash -c "echo your very first web server >> /var/www/html/index.html"
               EOF
   tags = {
-    Name = "tf-project-1"
+    Name = var.project_name
   }
 }
 
